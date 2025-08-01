@@ -1,1 +1,1 @@
-./node_modules/.bin/repo-tools check-remote && npm run validate
+./node_modules/.bin/repo-tools check-remote && pnpm run validate
