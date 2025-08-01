@@ -38,7 +38,7 @@ describe('styles', () => {
       getStyles(
         {
           ...props,
-          floaterProps: { styles: { arrow: { color: '#f00' } } },
+          floaterProps: { content: 'test', styles: { arrow: { color: '#f00' } } },
           styles: { options: { arrowColor: '#00f' } },
         },
         getMergedStep(props, baseStep),
@@ -52,7 +52,7 @@ describe('styles', () => {
         props,
         getMergedStep(props, {
           ...baseStep,
-          floaterProps: { styles: { arrow: { color: '#f00' } } },
+          floaterProps: { content: 'test', styles: { arrow: { color: '#f00' } } },
           styles: { options: { arrowColor: '#00f' } },
         }),
       ),
