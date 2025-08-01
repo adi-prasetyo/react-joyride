@@ -1,7 +1,11 @@
 import * as React from 'react';
-import Floater, { Props as FloaterProps, RenderProps } from 'react-floater';
+import Floater, { Props as FloaterProps } from 'react-floater';
 import is from 'is-lite';
 import treeChanges from 'tree-changes';
+
+interface RenderProps {
+  closeFn: React.MouseEventHandler;
+}
 
 import { getElement, isElementVisible } from '~/modules/dom';
 import { hideBeacon, log } from '~/modules/helpers';
@@ -229,10 +233,12 @@ export default class JoyrideStep extends React.Component<StepProps> {
       return null;
     }
 
+    const { content, ...floaterProps } = step.floaterProps || {};
+    
     return (
       <div key={`JoyrideStep-${index}`} className="react-joyride__step">
         <Floater
-          {...step.floaterProps}
+          {...floaterProps}
           component={this.renderTooltip}
           debug={debug}
           getPopper={this.setPopper}

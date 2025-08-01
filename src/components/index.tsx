@@ -295,16 +295,19 @@ class Joyride extends React.Component<Props, State> {
       const tooltipPopper = this.store.getPopper('tooltip');
 
       if (lifecycle === LIFECYCLE.BEACON && beaconPopper) {
-        const { offsets, placement } = beaconPopper;
+        const placement = beaconPopper.state.placement;
+        const popperRect = beaconPopper.state.elements.popper.getBoundingClientRect();
 
         if (!['bottom'].includes(placement) && !hasCustomScroll) {
-          scrollY = Math.floor(offsets.popper.top - scrollOffset);
+          scrollY = Math.floor(popperRect.top - scrollOffset);
         }
       } else if (lifecycle === LIFECYCLE.TOOLTIP && tooltipPopper) {
-        const { flipped, offsets, placement } = tooltipPopper;
+        const placement = tooltipPopper.state.placement;
+        const popperRect = tooltipPopper.state.elements.popper.getBoundingClientRect();
+        const flipped = tooltipPopper.state.modifiersData.flip?.hasFlipped;
 
         if (['top', 'right', 'left'].includes(placement) && !flipped && !hasCustomScroll) {
-          scrollY = Math.floor(offsets.popper.top - scrollOffset);
+          scrollY = Math.floor(popperRect.top - scrollOffset);
         } else {
           scrollY -= step.spotlightPadding;
         }
@@ -316,7 +319,7 @@ class Joyride extends React.Component<Props, State> {
         scrollTo(scrollY, { element: scrollParent as Element, duration: scrollDuration }).then(
           () => {
             setTimeout(() => {
-              this.store.getPopper('tooltip')?.instance.update();
+              this.store.getPopper('tooltip')?.update();
             }, 10);
           },
         );
