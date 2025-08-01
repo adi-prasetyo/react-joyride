@@ -86,12 +86,12 @@ export function getReactNodeText(input: ReactNode, options: GetReactNodeTextOpti
   if (!text) {
     if (
       isValidElement(input) &&
-      !Object.values(input.props).length &&
+      !Object.values(input.props as Record<string, unknown>).length &&
       getObjectType(input.type) === 'function'
     ) {
       const component = (input.type as FC)({});
 
-      text = getReactNodeText(component, options);
+      text = getReactNodeText(component as ReactNode, options);
     } else {
       text = innerText(defaultValue);
     }
@@ -255,12 +255,12 @@ export function replaceLocaleContent(input: ReactNode, step: number, steps: numb
     return input;
   }
 
-  const { children } = input.props;
+  const { children } = input.props as { children?: ReactNode };
 
-  if (getObjectType(children) === 'string' && children.includes('{step}')) {
+  if (getObjectType(children) === 'string' && (children as string).includes('{step}')) {
     return cloneElement(input as ReactElement, {
-      children: replacer(children),
-    });
+      children: replacer(children as string),
+    } as any);
   }
 
   if (Array.isArray(children)) {
@@ -272,13 +272,13 @@ export function replaceLocaleContent(input: ReactNode, step: number, steps: numb
 
         return replaceLocaleContent(child, step, steps);
       }),
-    });
+    } as any);
   }
 
-  if (getObjectType(input.type) === 'function' && !Object.values(input.props).length) {
+  if (getObjectType(input.type) === 'function' && !Object.values(input.props as Record<string, unknown>).length) {
     const component = (input.type as FC)({});
 
-    return replaceLocaleContent(component, step, steps);
+    return replaceLocaleContent(component as ReactNode, step, steps);
   }
 
   return input;

@@ -22,7 +22,7 @@ export default function Standard(props: Omit<Props, 'run' | 'steps'>) {
       steps: scrollSteps,
     },
   );
-  const helpersRef = useRef<StoreHelpers>();
+  const helpersRef = useRef<StoreHelpers | null>(null);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data;
