@@ -12,6 +12,13 @@ You can also use your own components.
 **Open the** [**demo**](https://react-joyride.com/)  
 **Open GitHub** [**repo**](https://github.com/gilbarbara/react-joyride)
 
+## Tutorial Guides
+
+- [**Tutorial Implementation Guide**](tutorial-implementation-guide.md) - Complete guide with TutorialWrapper component, state management, and TypeScript types
+- [**Tutorial Styling Guide**](tutorial-styling-guide.md) - Comprehensive styling solutions including button positioning fixes and theme examples
+- [**Tutorial Localization Guide**](tutorial-localization.md) - Multi-language support, removing step counters, and RTL language handling
+- [**Tutorial Troubleshooting**](tutorial-troubleshooting.md) - Common issues and solutions for button positioning, tooltips, scrolling, and more
+
 ## Setup
 
 ```bash
