@@ -17,6 +17,28 @@ And you can use your own components too!
 
 Talk about it on the [Discussions board](https://github.com/gilbarbara/react-joyride/discussions).
 
+## 🔀 About This Fork
+
+> **Note**: This is a maintained fork of the original react-joyride with modern dependency updates and React 19 compatibility.
+
+**Fork Repository**: [adi-prasetyo/react-joyride](https://github.com/adi-prasetyo/react-joyride)  
+**Branch**: `adp-maintained`  
+**Original**: [gilbarbara/react-joyride](https://github.com/gilbarbara/react-joyride)
+
+### Key Differences from Original:
+- ✅ **React 19 Support** - Full compatibility with React 19
+- ✅ **Modern Dependencies** - Updated to latest secure versions  
+- ✅ **Security Fixes** - Eliminated critical vulnerabilities
+- ✅ **Updated Tooling** - Vitest 3.x, TypeScript 5.9, modern build tools
+- ✅ **Backward Compatible** - Same API, no breaking changes for consumers
+
+**Installation for this fork:**
+```bash
+npm install github:adi-prasetyo/react-joyride#adp-maintained
+```
+
+For detailed differences, see [Fork Documentation](docs/fork-differences.md).
+
 ## Setup
 
 ```bash

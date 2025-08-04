@@ -1,6 +1,7 @@
 # Table of contents
 
 * [Overview](README.md)
+* [Fork Differences](fork-differences.md)
 * [Props](props.md)
 * [Step](step.md)
 * [Styling](styling.md)
