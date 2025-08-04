@@ -11,6 +11,7 @@ This guide addresses common issues and their solutions when implementing tutoria
 - [State Synchronization Problems](#state-synchronization-problems)
 - [Styling Conflicts](#styling-conflicts)
 - [Z-Index Problems](#z-index-problems)
+- [Automated Testing Issues](#automated-testing-issues)
 - [Mobile-Specific Issues](#mobile-specific-issues)
 - [Performance Issues](#performance-issues)
 - [Multi-Page Tour Issues](#multi-page-tour-issues)
@@ -426,6 +427,38 @@ useEffect(() => {
   }
 }, []);
 ```
+
+## Automated Testing Issues
+
+### Problem: Can't Click Through Overlay in Playwright/Puppeteer
+
+**Symptom**: Automated tests fail to click elements through the Joyride overlay, even with `spotlightClicks: true`, but manual clicking works fine.
+
+**Cause**: When `spotlightClicks` is enabled, Joyride tracks mouse movement to determine when the cursor is over the spotlight area and sets `pointer-events: none` on the overlay. Automated testing tools like Playwright typically don't trigger `mousemove` events when clicking, so the overlay remains clickable and blocks the target element.
+
+**Solution**: Trigger mouse movement before clicking:
+
+```typescript
+// Playwright example
+test('click element through Joyride spotlight', async ({ page }) => {
+  const button = page.locator('[data-testid="my-button"]');
+  const box = await button.boundingBox();
+  
+  if (box) {
+    // Move mouse to trigger mousemove events
+    await page.mouse.move(box.x + box.width/2, box.y + box.height/2);
+    await page.waitForTimeout(50); // Give time for mousemove handler
+    
+    // Now click - the overlay will have pointer-events: none
+    await page.mouse.click(box.x + box.width/2, box.y + box.height/2);
+  }
+});
+
+// Alternative approach using force click (less realistic but simpler)
+await button.click({ force: true });
+```
+
+**Explanation**: The overlay component listens for `mousemove` events to detect when the cursor enters the spotlight area. When detected, it sets `pointer-events: none` on the overlay, allowing clicks to pass through. Manual testing naturally triggers these events as you move your mouse, but automated tools need to explicitly trigger them.
 
 ## Mobile-Specific Issues
 
