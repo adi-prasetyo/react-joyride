@@ -77,8 +77,7 @@ export default class JoyrideStep extends React.Component<StepProps> {
     if (
       step.placement === 'center' &&
       status === STATUS.RUNNING &&
-      changed('index') &&
-      action !== ACTIONS.START &&
+      (changed('index') || action === ACTIONS.START) &&
       lifecycle === LIFECYCLE.INIT
     ) {
       store.update({ lifecycle: LIFECYCLE.READY });

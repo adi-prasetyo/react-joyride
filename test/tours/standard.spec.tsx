@@ -388,6 +388,57 @@ describe('Joyride > Standard', () => {
         action: ACTIONS.NEXT,
         index: 5,
         lifecycle: LIFECYCLE.COMPLETE,
+        type: EVENTS.STEP_AFTER,
+      }),
+    );
+  });
+
+  it('should render the STEP 6 Tooltip with center placement and overlay', async () => {
+    await waitFor(() => {
+      expect(mockCallback).toHaveBeenCalledTimes(28);
+    });
+
+    expect(mockCallback).toHaveBeenNthCalledWith(
+      27,
+      getCallbackResponse({
+        action: ACTIONS.NEXT,
+        index: 6,
+        lifecycle: LIFECYCLE.READY,
+        type: EVENTS.STEP_BEFORE,
+      }),
+    );
+
+    expect(mockCallback).toHaveBeenNthCalledWith(
+      28,
+      getCallbackResponse({
+        action: ACTIONS.UPDATE,
+        index: 6,
+        lifecycle: LIFECYCLE.TOOLTIP,
+        type: EVENTS.TOOLTIP,
+      }),
+    );
+
+    // Verify overlay is present for center placement step
+    expect(screen.getByTestId('overlay')).toBeInTheDocument();
+    expect(screen.getByTestId('overlay')).toHaveStyle({
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    });
+
+    // Verify tooltip content
+    const tooltip = screen.getById('react-joyride-step-6');
+    expect(tooltip).toBeInTheDocument();
+    expect(tooltip).toHaveTextContent("That's it folks!");
+  });
+
+  it('should handle clicking the STEP 6 Close button', () => {
+    fireEvent.click(screen.getByTestId('button-close'));
+
+    expect(mockCallback).toHaveBeenNthCalledWith(
+      29,
+      getCallbackResponse({
+        action: ACTIONS.CLOSE,
+        index: 6,
+        lifecycle: LIFECYCLE.COMPLETE,
         status: STATUS.FINISHED,
         type: EVENTS.STEP_AFTER,
       }),
@@ -396,10 +447,10 @@ describe('Joyride > Standard', () => {
 
   it('should have ended the tour', async () => {
     expect(mockCallback).toHaveBeenNthCalledWith(
-      27,
+      30,
       getCallbackResponse({
-        action: ACTIONS.NEXT,
-        index: 5,
+        action: ACTIONS.CLOSE,
+        index: 6,
         lifecycle: LIFECYCLE.INIT,
         status: STATUS.FINISHED,
         type: EVENTS.TOUR_END,
@@ -407,7 +458,7 @@ describe('Joyride > Standard', () => {
     );
 
     expect(mockCallback).toHaveBeenNthCalledWith(
-      28,
+      31,
       getCallbackResponse({
         action: ACTIONS.RESET,
         index: 0,
@@ -418,7 +469,7 @@ describe('Joyride > Standard', () => {
     );
 
     expect(mockCallback).toHaveBeenNthCalledWith(
-      29,
+      32,
       getCallbackResponse({
         action: ACTIONS.STOP,
         index: 0,

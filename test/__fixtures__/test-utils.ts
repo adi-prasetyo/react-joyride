@@ -15,15 +15,29 @@ import {
 const queryAllById = (container: HTMLElement, id: Matcher, options?: MatcherOptions) =>
   queryHelpers.queryAllByAttribute('id', container, id, options);
 
+const queryAllByTestId = (container: HTMLElement, id: Matcher, options?: MatcherOptions) =>
+  queryHelpers.queryAllByAttribute('data-test-id', container, id, options);
+
 const getMultipleError = (_: Element | null, idValue?: Matcher) =>
   `Found multiple elements with the id attribute of: ${idValue}`;
 const getMissingError = (_: Element | null, idValue?: Matcher) =>
   `Unable to find an element with the id attribute of: ${idValue}`;
 
+const getMultipleTestIdError = (_: Element | null, idValue?: Matcher) =>
+  `Found multiple elements with the data-test-id attribute of: ${idValue}`;
+const getMissingTestIdError = (_: Element | null, idValue?: Matcher) =>
+  `Unable to find an element with the data-test-id attribute of: ${idValue}`;
+
 const [queryById, getAllById, getById, findAllById, findById] = buildQueries(
   queryAllById,
   getMultipleError,
   getMissingError,
+);
+
+const [queryByTestId, getAllByTestId, getByTestId, findAllByTestId, findByTestId] = buildQueries(
+  queryAllByTestId,
+  getMultipleTestIdError,
+  getMissingTestIdError,
 );
 
 const customQueries = {
@@ -33,6 +47,12 @@ const customQueries = {
   getAllById,
   findAllById,
   findById,
+  queryByTestId,
+  queryAllByTestId,
+  getByTestId,
+  getAllByTestId,
+  findAllByTestId,
+  findByTestId,
 };
 
 const allQueries = {
