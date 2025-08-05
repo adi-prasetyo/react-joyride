@@ -11,7 +11,9 @@ This guide addresses common issues and their solutions when implementing tutoria
 - [State Synchronization Problems](#state-synchronization-problems)
 - [Styling Conflicts](#styling-conflicts)
 - [Z-Index Problems](#z-index-problems)
+- [Overlay Not Appearing Issues](#overlay-not-appearing-issues)
 - [Automated Testing Issues](#automated-testing-issues)
+- [Spotlight Issues](#spotlight-issues)
 - [Mobile-Specific Issues](#mobile-specific-issues)
 - [Performance Issues](#performance-issues)
 - [Multi-Page Tour Issues](#multi-page-tour-issues)
@@ -428,6 +430,97 @@ useEffect(() => {
 }, []);
 ```
 
+## Overlay Not Appearing Issues
+
+### Problem: Overlay Not Showing on Initial Render for Center Placement
+
+**Symptom**: When starting a tour with a step that targets `body` with `placement: 'center'`, the overlay (darkened background) doesn't appear on initial render. It only appears after navigating to another step and then back.
+
+**Cause**: Prior to version 2.9.4, there was a bug in the lifecycle progression logic that prevented center-placed steps from advancing from `INIT` to `READY` lifecycle when the tour first started with `ACTIONS.START`.
+
+**Solution for versions < 2.9.4**: 
+
+1. **Workaround - Start with a different step**:
+```typescript
+// Add a dummy first step that immediately advances
+const steps = [
+  {
+    target: '.some-element',
+    content: 'Welcome!',
+    placement: 'bottom',
+    disableBeacon: true,
+  },
+  {
+    target: 'body',
+    content: 'This is the main welcome message',
+    placement: 'center',
+  },
+  // ... rest of your steps
+];
+```
+
+2. **Workaround - Force lifecycle progression**:
+```typescript
+const [run, setRun] = useState(false);
+
+// Start tour with a delay
+useEffect(() => {
+  if (shouldStartTour) {
+    setRun(true);
+    // Force a re-render after mount
+    setTimeout(() => {
+      setRun(false);
+      setTimeout(() => setRun(true), 10);
+    }, 100);
+  }
+}, [shouldStartTour]);
+```
+
+**Solution for versions >= 2.9.4**: This issue has been fixed. The overlay now appears immediately for center placement steps on initial render.
+
+**How to verify the fix**: 
+```typescript
+// This should now work correctly in v2.9.4+
+const steps = [
+  {
+    target: 'body',
+    placement: 'center',
+    content: 'Welcome! The overlay should appear immediately.',
+  },
+];
+
+<Joyride
+  steps={steps}
+  run={true}
+  styles={{
+    options: {
+      overlayColor: 'rgba(0, 0, 0, 0.5)', // Verify overlay is visible
+    },
+  }}
+/>
+```
+
+**Technical Details**: The issue was in the Step component where the condition for lifecycle progression explicitly excluded `ACTIONS.START`. The fix includes this action in the condition:
+
+```typescript
+// Before (buggy)
+if (step.placement === 'center' && 
+    status === STATUS.RUNNING && 
+    changed('index') && 
+    action !== ACTIONS.START && // This was the problem
+    lifecycle === LIFECYCLE.INIT) {
+  store.update({ lifecycle: LIFECYCLE.READY });
+}
+
+// After (fixed)
+if (step.placement === 'center' && 
+    status === STATUS.RUNNING && 
+    (changed('index') || action === ACTIONS.START) && 
+    lifecycle === LIFECYCLE.INIT) {
+  store.update({ lifecycle: LIFECYCLE.READY });
+}
+```
+
 ## Automated Testing Issues
 
 ### Problem: Can't Click Through Overlay in Playwright/Puppeteer
@@ -459,6 +552,60 @@ await button.click({ force: true });
 ```
 
 **Explanation**: The overlay component listens for `mousemove` events to detect when the cursor enters the spotlight area. When detected, it sets `pointer-events: none` on the overlay, allowing clicks to pass through. Manual testing naturally triggers these events as you move your mouse, but automated tools need to explicitly trigger them.
+
+## Spotlight Issues
+
+### Problem: spotlightPadding Not Working
+
+**Symptom**: Setting `spotlightPadding` (including negative values) has no effect on the spotlight size.
+
+**Cause**: The step configuration is not properly passing the `spotlightPadding` property to Joyride. This often happens when using a wrapper component that maps custom step objects to Joyride's Step format.
+
+**Solution**: Ensure your wrapper includes `spotlightPadding` when converting steps:
+
+```typescript
+// ❌ Wrong - spotlightPadding missing
+const joyrideSteps = steps.map(step => ({
+  target: step.target,
+  content: step.content,
+  placement: step.placement || 'bottom',
+  spotlightClicks: step.spotlightClicks,
+  styles: step.styles || {},
+}));
+
+// ✅ Correct - spotlightPadding included
+const joyrideSteps = steps.map(step => ({
+  target: step.target,
+  content: step.content,
+  placement: step.placement || 'bottom',
+  spotlightClicks: step.spotlightClicks,
+  spotlightPadding: step.spotlightPadding !== undefined ? step.spotlightPadding : 10,
+  styles: step.styles || {},
+}));
+```
+
+### Problem: Spotlight Highlights Adjacent Elements
+
+**Symptom**: The spotlight is too large and highlights neighboring buttons or elements.
+
+**Solution**: Use negative `spotlightPadding` to shrink the spotlight:
+
+```typescript
+{
+  target: '[data-testid="my-button"]',
+  content: 'Click this specific button',
+  spotlightPadding: -5, // Makes spotlight 10px smaller (5px on each side)
+  // or
+  spotlightPadding: -10, // Makes spotlight 20px smaller
+}
+```
+
+**Note**: The spotlight size calculation is:
+- Width: `elementWidth + (spotlightPadding * 2)`
+- Height: `elementHeight + (spotlightPadding * 2)`
+- Left position: `elementLeft - spotlightPadding`
+
+So negative padding reduces the size and shifts the position accordingly.
 
 ## Mobile-Specific Issues
 
