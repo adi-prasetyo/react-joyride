@@ -71,6 +71,8 @@ export type Placement =
   | 'right-start'
   | 'right-end';
 
+export type SpotlightMethod = 'blend-mode' | 'clip-path' | 'box-shadow' | 'svg-mask';
+
 export interface Styles {
   beacon: CSSProperties;
   beaconInner: CSSProperties;

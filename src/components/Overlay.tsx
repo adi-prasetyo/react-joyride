@@ -119,9 +119,35 @@ export default class JoyrideOverlay extends React.Component<OverlayProps, State>
     );
   };
 
+  detectProblematicElement(element: HTMLElement | null): boolean {
+    if (!element) return false;
+    
+    // Check if element is in a table
+    const isInTable = element.closest('table, tbody, thead, tfoot, tr, td, th') !== null;
+    
+    // Check for overflow properties
+    let currentElement: HTMLElement | null = element;
+    while (currentElement && currentElement !== document.body) {
+      const style = window.getComputedStyle(currentElement);
+      if (style.overflow === 'hidden' || style.overflow === 'auto' || style.overflow === 'scroll') {
+        return true;
+      }
+      currentElement = currentElement.parentElement;
+    }
+    
+    return isInTable;
+  }
+
   get overlayStyles() {
     const { mouseOverSpotlight } = this.state;
-    const { disableOverlayClose, placement, styles } = this.props;
+    const { disableOverlayClose, placement, styles, target } = this.props;
+    let { spotlightMethod = 'blend-mode' } = this.props;
+    
+    // Auto-detect problematic elements and switch method
+    const element = getElement(target);
+    if (spotlightMethod === 'blend-mode' && this.detectProblematicElement(element)) {
+      spotlightMethod = 'clip-path';
+    }
 
     let baseStyles = styles.overlay;
 
@@ -129,12 +155,43 @@ export default class JoyrideOverlay extends React.Component<OverlayProps, State>
       baseStyles = placement === 'center' ? styles.overlayLegacyCenter : styles.overlayLegacy;
     }
 
-    return {
+    const overlayStyles: React.CSSProperties = {
       cursor: disableOverlayClose ? 'default' : 'pointer',
       height: getDocumentHeight(),
       pointerEvents: mouseOverSpotlight ? 'none' : 'auto',
       ...baseStyles,
-    } as React.CSSProperties;
+    };
+
+    // Apply different spotlight methods
+    if (placement !== 'center') {
+      const element = getElement(target);
+      const { spotlightPadding = 0 } = this.props;
+      
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        const left = rect.left - spotlightPadding;
+        const top = rect.top - spotlightPadding;
+        const right = rect.left + rect.width + spotlightPadding;
+        const bottom = rect.top + rect.height + spotlightPadding;
+        
+        if (spotlightMethod === 'clip-path') {
+          overlayStyles.clipPath = `polygon(
+            0% 0%, 
+            0% 100%, 
+            ${left}px 100%, 
+            ${left}px ${top}px, 
+            ${right}px ${top}px, 
+            ${right}px ${bottom}px, 
+            ${left}px ${bottom}px, 
+            ${left}px 100%, 
+            100% 100%, 
+            100% 0%
+          )`;
+        }
+      }
+    }
+
+    return overlayStyles;
   }
 
   get spotlightStyles(): SpotlightStyles {
@@ -222,23 +279,56 @@ export default class JoyrideOverlay extends React.Component<OverlayProps, State>
 
   render() {
     const { showSpotlight } = this.state;
-    const { onClickOverlay, placement } = this.props;
+    const { onClickOverlay, placement, target } = this.props;
+    let { spotlightMethod = 'blend-mode' } = this.props;
     const { hideSpotlight, overlayStyles, spotlightStyles } = this;
+    
+    // Auto-detect problematic elements and switch method
+    const element = getElement(target);
+    if (spotlightMethod === 'blend-mode' && this.detectProblematicElement(element)) {
+      spotlightMethod = 'clip-path';
+    }
 
     if (hideSpotlight()) {
       return null;
     }
 
-    let spotlight = placement !== 'center' && showSpotlight && (
-      <Spotlight styles={spotlightStyles} />
-    );
+    let spotlight = null;
+    let content = null;
+    
+    // Different rendering based on spotlight method
+    if (placement !== 'center' && showSpotlight) {
+      if (spotlightMethod === 'blend-mode') {
+        spotlight = <Spotlight styles={spotlightStyles} />;
 
-    // Hack for Safari bug with mix-blend-mode with z-index
-    if (getBrowser() === 'safari') {
-      const { mixBlendMode, zIndex, ...safariOverlay } = overlayStyles;
-
-      spotlight = <div style={{ ...safariOverlay }}>{spotlight}</div>;
-      delete overlayStyles.backgroundColor;
+        // Hack for Safari bug with mix-blend-mode with z-index
+        if (getBrowser() === 'safari') {
+          const { mixBlendMode, zIndex, ...safariOverlay } = overlayStyles;
+          spotlight = <div style={{ ...safariOverlay }}>{spotlight}</div>;
+          delete overlayStyles.backgroundColor;
+        }
+      } else if (spotlightMethod === 'box-shadow') {
+        const element = getElement(this.props.target);
+        const { spotlightPadding = 0 } = this.props;
+        
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          const spotlightBoxStyle: React.CSSProperties = {
+            position: 'fixed',
+            left: rect.left - spotlightPadding,
+            top: rect.top - spotlightPadding,
+            width: rect.width + (spotlightPadding * 2),
+            height: rect.height + (spotlightPadding * 2),
+            boxShadow: `0 0 0 9999px ${overlayStyles.backgroundColor || 'rgba(0, 0, 0, 0.5)'}`,
+            pointerEvents: this.props.spotlightClicks ? 'none' : 'auto',
+            zIndex: 1,
+          };
+          
+          content = <div className="react-joyride__spotlight-box" style={spotlightBoxStyle} />;
+          // Remove background from overlay since box-shadow handles it
+          delete overlayStyles.backgroundColor;
+        }
+      }
     }
 
     return (
@@ -250,6 +340,7 @@ export default class JoyrideOverlay extends React.Component<OverlayProps, State>
         style={overlayStyles}
       >
         {spotlight}
+        {content}
       </div>
     );
   }

@@ -159,7 +159,7 @@ export default function getStyles(props: Props, step: StepMerged) {
     overlay: {
       ...overlay,
       backgroundColor: options.overlayColor,
-      mixBlendMode: 'hard-light',
+      mixBlendMode: step.spotlightMethod === 'blend-mode' ? 'hard-light' : undefined,
     },
     overlayLegacy: {
       ...overlay,

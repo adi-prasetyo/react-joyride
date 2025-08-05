@@ -555,6 +555,73 @@ await button.click({ force: true });
 
 ## Spotlight Issues
 
+### Problem: Spotlight Not Rendering Correctly on Tables
+
+**Symptom**: When targeting elements inside tables, the spotlight effect appears broken, doesn't highlight the correct area, or creates visual artifacts.
+
+**Cause**: React Joyride uses `mix-blend-mode: hard-light` with a gray background for the spotlight effect by default. This CSS property has rendering issues with:
+- Elements inside tables (`table`, `tbody`, `thead`, `tr`, `td`, `th`)
+- Elements that have `overflow: auto` or `overflow: hidden`
+- Elements within complex stacking contexts
+- Elements with CSS transforms or fixed positioning
+
+**Solution (v2.9.4+)**: Use the new `spotlightMethod` prop to switch to a more compatible rendering method:
+
+```typescript
+// Option 1: Use clip-path method (recommended for tables)
+<Joyride
+  steps={steps}
+  spotlightMethod="clip-path"
+/>
+
+// Option 2: Use box-shadow method (works in older browsers)
+<Joyride
+  steps={steps}
+  spotlightMethod="box-shadow"
+/>
+
+// Option 3: Let Joyride auto-detect problematic elements
+// (defaults to blend-mode but switches to clip-path for tables/overflow)
+<Joyride
+  steps={steps}
+  // No spotlightMethod specified - auto-detection enabled
+/>
+```
+
+**Per-Step Configuration**: You can also set the method for individual steps:
+
+```typescript
+const steps = [
+  {
+    target: '.regular-element',
+    content: 'Uses default blend-mode',
+  },
+  {
+    target: 'td.table-cell',
+    content: 'Uses clip-path for better table compatibility',
+    spotlightMethod: 'clip-path',
+  },
+];
+```
+
+**Available Spotlight Methods**:
+- `'blend-mode'` (default): Uses CSS mix-blend-mode. Best visual effect but has compatibility issues
+- `'clip-path'`: Uses CSS clip-path to create a "hole" in the overlay. Better compatibility, especially with tables
+- `'box-shadow'`: Uses a large box-shadow. Most compatible but less flexible
+- `'svg-mask'`: Uses SVG masking (future enhancement, not yet implemented)
+
+**Auto-Detection**: When using the default `'blend-mode'` method, Joyride automatically detects:
+- Elements inside table structures
+- Elements with overflow properties
+- Elements in problematic stacking contexts
+
+And switches to `'clip-path'` automatically for better rendering.
+
+**Browser Compatibility**:
+- `blend-mode`: All modern browsers except some Safari issues
+- `clip-path`: All modern browsers, IE11 not supported
+- `box-shadow`: All browsers including IE11
+
 ### Problem: spotlightPadding Not Working
 
 **Symptom**: Setting `spotlightPadding` (including negative values) has no effect on the spotlight size.

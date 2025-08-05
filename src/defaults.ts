@@ -45,6 +45,7 @@ export const defaultStep = {
   showSkipButton: false,
   spotlightClicks: false,
   spotlightPadding: 10,
+  spotlightMethod: 'blend-mode',
 } satisfies Omit<Step, 'content' | 'target'>;
 
 export const defaultProps = {
@@ -65,5 +66,6 @@ export const defaultProps = {
   showProgress: false,
   spotlightClicks: false,
   spotlightPadding: 10,
+  spotlightMethod: 'blend-mode',
   steps: [],
 } satisfies Props;

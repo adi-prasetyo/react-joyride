@@ -4,7 +4,7 @@ import { PartialDeep, SetRequired, Simplify } from 'type-fest';
 
 import type { StoreInstance } from '~/modules/store';
 
-import { Actions, Events, Lifecycle, Locale, Origin, Placement, Status, Styles } from './common';
+import { Actions, Events, Lifecycle, Locale, Origin, Placement, SpotlightMethod, Status, Styles } from './common';
 
 export type BaseProps = {
   /**
@@ -70,6 +70,15 @@ export type BaseProps = {
    * @default 10
    */
   spotlightPadding?: number;
+  /**
+   * The rendering method for the spotlight effect.
+   * - 'blend-mode': Uses CSS mix-blend-mode (default, may have issues with tables/overflow)
+   * - 'clip-path': Uses CSS clip-path (better compatibility)
+   * - 'box-shadow': Uses box-shadow (fallback for older browsers)
+   * - 'svg-mask': Uses SVG mask (most flexible)
+   * @default 'blend-mode'
+   */
+  spotlightMethod?: SpotlightMethod;
   /**
    * Override the styling of the Tooltip
    */
@@ -296,6 +305,7 @@ export type StepMerged = Simplify<
     | 'showSkipButton'
     | 'spotlightClicks'
     | 'spotlightPadding'
+    | 'spotlightMethod'
   > & {
     styles: Styles;
   }
